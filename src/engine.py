@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 class Tokenizer:
     def __init__(self, model_name: str):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         self.has_chat_template = bool(self.tokenizer.chat_template)
 
     def apply_chat_template(self, input: Union[str, list[dict[str, str]]]) -> str:
@@ -47,8 +47,6 @@ class VLLMEngine:
             "disable_log_requests": bool(int(os.getenv("DISABLE_LOG_REQUESTS", 1))),
             "gpu_memory_utilization": float(os.getenv("GPU_MEMORY_UTILIZATION", 0.98)),
             "tensor_parallel_size": self._get_num_gpu_shard(),
-
-            "trust_remote_code"
         }
 
     def _initialize_llm(self):
