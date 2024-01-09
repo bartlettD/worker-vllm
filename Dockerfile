@@ -10,7 +10,7 @@ ENV WORKER_CUDA_VERSION=${WORKER_CUDA_VERSION} \
     HUGGINGFACE_HUB_CACHE="/runpod-volume/huggingface-cache/hub" \
     TRANSFORMERS_CACHE="/runpod-volume/huggingface-cache/hub" \
     HF_TRANSFER=1 \
-    TORCH_CUDA_ARCH_LIST="8.0,8.6,8.9,9.0"
+    TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 9.0"
 
 
 # Install Python dependencies
