@@ -47,6 +47,8 @@ class VLLMEngine:
             "disable_log_requests": bool(int(os.getenv("DISABLE_LOG_REQUESTS", 1))),
             "gpu_memory_utilization": float(os.getenv("GPU_MEMORY_UTILIZATION", 0.98)),
             "tensor_parallel_size": self._get_num_gpu_shard(),
+
+            "trust_remote_code"
         }
 
     def _initialize_llm(self):
