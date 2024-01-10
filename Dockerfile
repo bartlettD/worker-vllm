@@ -16,12 +16,11 @@ ENV WORKER_CUDA_VERSION=${WORKER_CUDA_VERSION} \
 # Install Python dependencies
 COPY builder/requirements.txt /requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python3.11 -m pip install --upgrade pip && \
-    python3.11 -m pip install --upgrade -r /requirements.txt && \
+    pip3 install --upgrade -r /requirements.txt && \
     rm /requirements.txt
 
 # Install torch and vllm based on CUDA version
-RUN python3.11 -m pip install -e git+https://github.com/runpod/vllm-fork-for-sls-worker.git@cuda-11.8#egg=vllm; \
+RUN pip3 install -e git+https://github.com/runpod/vllm-fork-for-sls-worker.git@cuda-11.8#egg=vllm; \
     rm -rf /root/.cache/pip
 
 # Add source files
