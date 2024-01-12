@@ -19,7 +19,7 @@ RUN pip3 install --no-cache-dir --upgrade -r /requirements.txt && \
     rm /requirements.txt
 
 # Install torch and vllm based on CUDA version
-RUN pip3 install --no-cache-dir https://github.com/bartlettD/vllm-fork-for-sls-worker/releases/download/cuda-11.8-wheel/vllm-0.2.6-cp311-cp311-manylinux1_x86_64.whl
+RUN pip3 install --no-cache-dir https://github.com/vllm-project/vllm/releases/download/v0.2.7/vllm-0.2.7+cu118-cp311-cp311-manylinux1_x86_64.whl
 
 # Add source files
 COPY src .
