@@ -48,6 +48,7 @@ class VLLMEngine:
             "gpu_memory_utilization": float(os.getenv("GPU_MEMORY_UTILIZATION", 0.98)),
             "tensor_parallel_size": self._get_num_gpu_shard(),
             "trust_remote_code": bool(int(os.getenv("TRUST_REMOTE_CODE", 0))),
+            "max_model_len": int(os.getenv("MAX_MODEL_LEN", 2048)),
         }
 
     def _initialize_llm(self):

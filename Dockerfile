@@ -1,6 +1,6 @@
 # Base image - Set default to CUDA 11.8
-ARG WORKER_CUDA_VERSION=11.8
-FROM runpod/base:0.4.4-cuda${WORKER_CUDA_VERSION}.0 as builder
+#ARG WORKER_CUDA_VERSION=11.8
+FROM ghcr.io/bartlettd/vllm-cuda:main as builder
 
 ARG WORKER_CUDA_VERSION=11.8 # Required duplicate to keep in scope
 
@@ -15,19 +15,11 @@ ENV WORKER_CUDA_VERSION=${WORKER_CUDA_VERSION} \
 
 # Install Python dependencies
 COPY builder/requirements.txt /requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    python3.11 -m pip install --upgrade pip && \
-    python3.11 -m pip install --upgrade -r /requirements.txt && \
+RUN pip3 install --no-cache-dir --upgrade -r /requirements.txt && \
     rm /requirements.txt
 
 # Install torch and vllm based on CUDA version
-RUN if [[ "${WORKER_CUDA_VERSION}" == 11.8* ]]; then \
-        python3.11 -m pip install -U --force-reinstall torch==2.1.2 xformers==0.0.23.post1 --index-url https://download.pytorch.org/whl/cu118; \
-        python3.11 -m pip install -e git+https://github.com/runpod/vllm-fork-for-sls-worker.git@cuda-11.8#egg=vllm; \
-    else \
-        python3.11 -m pip install -e git+https://github.com/runpod/vllm-fork-for-sls-worker.git#egg=vllm; \
-    fi && \
-    rm -rf /root/.cache/pip
+RUN pip3 install --no-cache-dir https://github.com/vllm-project/vllm/releases/download/v0.2.7/vllm-0.2.7+cu118-cp311-cp311-manylinux1_x86_64.whl
 
 # Add source files
 COPY src .
