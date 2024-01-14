@@ -25,10 +25,10 @@ RUN pip3 install --no-cache-dir https://github.com/vllm-project/vllm/releases/do
 COPY src .
 
 # Setup for Option 2: Building the Image with the Model included
-ARG MODEL_NAME="TheBloke/Nous-Capybara-34B-AWQ"
+ARG MODEL_NAME=""
 ARG MODEL_BASE_PATH="/runpod-volume/"
 ARG HF_TOKEN=""
-ARG QUANTIZATION="awq"
+ARG QUANTIZATION=""
 RUN if [ -n "$MODEL_NAME" ]; then \
         export MODEL_BASE_PATH=$MODEL_BASE_PATH && \
         export MODEL_NAME=$MODEL_NAME && \
