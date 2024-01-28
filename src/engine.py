@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 class Tokenizer:
     def __init__(self, model_name: str):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=bool(int(os.getenv("TRUST_REMOTE_CODE", 0))))
         self.has_chat_template = bool(self.tokenizer.chat_template)
 
     def apply_chat_template(self, input: Union[str, list[dict[str, str]]]) -> str:
@@ -176,6 +176,8 @@ class vLLMEngine:
             "max_parallel_loading_workers": int(os.getenv("MAX_PARALLEL_LOADING_WORKERS", count_physical_cores())),
             "max_model_len": self._get_max_model_len(),
             "tensor_parallel_size": self._get_num_gpu_shard(),
+            "trust_remote_code": bool(int(os.getenv("TRUST_REMOTE_CODE", 0))),
+            "max_model_len": int(os.getenv("MAX_MODEL_LEN", 2048)),
         }
 
     def _initialize_llm(self):

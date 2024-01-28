@@ -1,14 +1,27 @@
-ARG WORKER_CUDA_VERSION=11.8.0
-FROM runpod/worker-vllm:base-0.2.0-cuda${WORKER_CUDA_VERSION} AS vllm-base
+# Base image - Set default to CUDA 11.8
+#ARG WORKER_CUDA_VERSION=11.8
+FROM ghcr.io/bartlettd/vllm-cuda:main as builder
+
+ARG WORKER_CUDA_VERSION=11.8 # Required duplicate to keep in scope
+
+# Set Environment Variables
+ENV WORKER_CUDA_VERSION=${WORKER_CUDA_VERSION} \
+    HF_DATASETS_CACHE="/runpod-volume/huggingface-cache/datasets" \
+    HUGGINGFACE_HUB_CACHE="/runpod-volume/huggingface-cache/hub" \
+    TRANSFORMERS_CACHE="/runpod-volume/huggingface-cache/hub" \
+    HF_TRANSFER=1 \
+    TORCH_CUDA_ARCH_LIST="8.6 8.9"
 
 RUN apt-get update -y \
     && apt-get install -y python3-pip
 
 # Install Python dependencies
 COPY builder/requirements.txt /requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip \
-    python3 -m pip install --upgrade pip && \
-    python3 -m pip install --upgrade -r /requirements.txt
+RUN pip3 install --no-cache-dir --upgrade -r /requirements.txt && \
+    rm /requirements.txt
+
+# Install torch and vllm based on CUDA version
+RUN pip3 install --no-cache-dir https://github.com/vllm-project/vllm/releases/download/v0.2.7/vllm-0.2.7+cu118-cp311-cp311-manylinux1_x86_64.whl
 
 # Add source files
 COPY src /src
