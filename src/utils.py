@@ -1,51 +1,52 @@
-import os
 import logging
 from typing import Any, Dict
-from vllm import SamplingParams
 from vllm.utils import random_uuid
-from constants import sampling_param_types, DEFAULT_BATCH_SIZE, DEFAULT_MAX_CONCURRENCY
+from constants import SAMPLING_PARAM_TYPES, DEFAULT_BATCH_SIZE
 
 logging.basicConfig(level=logging.INFO)
 
+def count_physical_cores():
+    with open('/proc/cpuinfo') as f:
+        content = f.readlines()
 
-class ServerlessConfig:
-    def __init__(self):
-        self._max_concurrency = int(
-            os.environ.get("MAX_CONCURRENCY", DEFAULT_MAX_CONCURRENCY)
-        )
-        self._default_batch_size = int(
-            os.environ.get("DEFAULT_BATCH_SIZE", DEFAULT_BATCH_SIZE)
-        )
+    cores = set()
+    current_physical_id = None
+    current_core_id = None
 
-    @property
-    def max_concurrency(self):
-        return self._max_concurrency
+    for line in content:
+        if 'physical id' in line:
+            current_physical_id = line.strip().split(': ')[1]
+        elif 'core id' in line:
+            current_core_id = line.strip().split(': ')[1]
+            cores.add((current_physical_id, current_core_id))
 
-    @property
-    def default_batch_size(self):
-        return self._default_batch_size
+    return len(cores)
 
-
-def validate_sampling_params(params: Dict[str, Any]) -> SamplingParams:
+def validate_sampling_params(params: Dict[str, Any]) -> Dict[str, Any]:
     validated_params = {}
-
+    invalid_params = []
     for key, value in params.items():
-        expected_type = sampling_param_types.get(key)
-        if value is None:
-            validated_params[key] = None
-            continue
-
-        if expected_type is None:
-            continue
-
-        if isinstance(expected_type, tuple):
-            casted_value = next(
-                (t(value) for t in expected_type if isinstance(value, t)), None
-            )
+        expected_type = SAMPLING_PARAM_TYPES.get(key)
+        if expected_type and isinstance(value, expected_type):
+            validated_params[key] = value
         else:
-            casted_value = value if isinstance(value, expected_type) else None
+            invalid_params.append(key)
+        
+    if len(invalid_params) > 0:
+        logging.warning("Ignoring invalid sampling params: %s", invalid_params)
+        
+    return validated_params
 
-        if casted_value is not None:
-            validated_params[key] = casted_value
-
-    return SamplingParams(**validated_params)
+class JobInput:
+    def __init__(self, job):
+        self.llm_input = job.get("messages", job.get("prompt"))
+        self.stream = job.get("stream", False)
+        self.batch_size = job.get("batch_size", DEFAULT_BATCH_SIZE)
+        self.apply_chat_template = job.get("apply_chat_template", False)
+        self.use_openai_format = job.get("use_openai_format", False)
+        self.validated_sampling_params = validate_sampling_params(job.get("sampling_params", {}))
+        self.request_id = random_uuid()
+           
+class DummyRequest:
+    async def is_disconnected(self):
+        return False
